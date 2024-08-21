@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.ecommerce.dtos.ApiResponse;
 import com.google.gson.Gson;
 
+import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
 
 @RestControllerAdvice
@@ -17,7 +18,7 @@ public class AppGlobalExceptionHandler {
 
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ApiResponse<Object>> handleGenericException(Exception ex) {
-		ApiResponse<Object> response = new ApiResponse<>("FAIL", ex.getLocalizedMessage());
+		ApiResponse<Object> response = new ApiResponse<>("FAIL", ex.getMessage());
 		log.info("Response: {}", gson.toJson(response));
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
 	}
@@ -42,4 +43,11 @@ public class AppGlobalExceptionHandler {
 		log.info("Response: {}", gson.toJson(response));
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 	}
+	
+	@ExceptionHandler(JwtException.class)
+    public ResponseEntity<ApiResponse<Object>> handleJwtException(JwtException ex) {
+		ApiResponse<Object> response = new ApiResponse<>("FAIL", "Invalid or expired token");
+		log.info("Response: {}", gson.toJson(response));
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
 }
