@@ -62,4 +62,17 @@ public class UserService {
 
 		return response;
 	}
+
+	public boolean isFirstLogin(String email) {
+		 User user = userRepository.findByEmail(email)
+	                .orElseThrow(() -> new RuntimeException("User not found"));
+	        return user.isFirstLogin();
+	}
+
+	public void updateFirstLoginStatus(String email, boolean status) {
+		User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setFirstLogin(status);
+        userRepository.save(user);
+	}
 }

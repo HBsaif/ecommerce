@@ -86,11 +86,8 @@ public class JwtService {
 	}
 	
 	// Extract roles from the token
-    public Collection<SimpleGrantedAuthority> extractRoles(String token) {
-        Claims claims = extractAllClaims(token);
-        var roles = claims.get("roles", Collection.class);
-        return (Collection<SimpleGrantedAuthority>) roles.stream()
-                .map(role -> new SimpleGrantedAuthority((String) role))
-                .collect(Collectors.toList());
-    }
+	public List<String> extractRoles(String token) {
+	    Claims claims = extractAllClaims(token);
+	    return claims.get("roles", List.class);
+	}
 }

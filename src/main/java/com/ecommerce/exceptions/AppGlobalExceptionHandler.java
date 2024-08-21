@@ -17,7 +17,8 @@ public class AppGlobalExceptionHandler {
 
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ApiResponse<Object>> handleGenericException(Exception ex) {
-		ApiResponse<Object> response = new ApiResponse<>("FAIL", ex.getMessage());
+		ApiResponse<Object> response = new ApiResponse<>("FAIL", ex.getLocalizedMessage());
+		log.info("Response: {}", gson.toJson(response));
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
 	}
 
@@ -33,5 +34,12 @@ public class AppGlobalExceptionHandler {
 		ApiResponse<Object> response = new ApiResponse<>("FAIL", ex.getMessage());
 		log.info("Response: {}", gson.toJson(response));
 		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+	}
+	
+	@ExceptionHandler(WrongPasswordException.class)
+	public ResponseEntity<ApiResponse<Object>> handleWrongPasswordException(WrongPasswordException  ex) {
+		ApiResponse<Object> response = new ApiResponse<>("FAIL", ex.getMessage());
+		log.info("Response: {}", gson.toJson(response));
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 	}
 }
