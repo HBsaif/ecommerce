@@ -20,7 +20,7 @@ import com.google.gson.Gson;
 
 import lombok.extern.slf4j.Slf4j;
 
-@RequestMapping("/auth")
+@RequestMapping("${version}/auth")
 @RestController
 @Slf4j
 public class AuthenticationController {

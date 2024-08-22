@@ -12,7 +12,7 @@ import com.ecommerce.services.UserService;
 
 import java.util.List;
 
-@RequestMapping("/users")
+@RequestMapping("${version}/users")
 @RestController
 public class UserController {
     private final UserService userService;

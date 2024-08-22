@@ -1,5 +1,6 @@
 package com.ecommerce.configs;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -12,6 +13,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
+	@Value("${version}")
+	private String version;
 	private final AuthenticationProvider authenticationProvider;
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
@@ -25,8 +28,8 @@ public class SecurityConfiguration {
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(
-						requests -> requests.requestMatchers("/auth/**").permitAll()
-						.requestMatchers("/admin/**").hasRole("ADMIN")
+						requests -> requests.requestMatchers(version+"/auth/**").permitAll()
+						.requestMatchers(version+"/admin/**").hasRole("ADMIN")
 						.anyRequest().authenticated())
 				.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authenticationProvider(authenticationProvider)

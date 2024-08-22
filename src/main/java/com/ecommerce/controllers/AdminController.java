@@ -10,7 +10,7 @@ import com.ecommerce.dtos.RegisterUserDto;
 import com.ecommerce.entities.User;
 import com.ecommerce.services.UserService;
 
-@RequestMapping("/admin")
+@RequestMapping("${version}/admin")
 @RestController
 public class AdminController {
 
