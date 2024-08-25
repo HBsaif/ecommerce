@@ -1,5 +1,9 @@
 package com.ecommerce.controllers;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -10,12 +14,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ecommerce.dtos.ApiResponse;
 import com.ecommerce.dtos.ChangePasswordDto;
+import com.ecommerce.dtos.ConfirmRegistrationDto;
 import com.ecommerce.dtos.LoginUserDto;
 import com.ecommerce.dtos.RegisterUserDto;
+import com.ecommerce.entities.OtpRequest;
 import com.ecommerce.entities.User;
 import com.ecommerce.model.LoginResponse;
 import com.ecommerce.services.AuthenticationService;
 import com.ecommerce.services.JwtService;
+import com.ecommerce.services.OtpService;
 import com.google.gson.Gson;
 
 import lombok.extern.slf4j.Slf4j;
@@ -31,14 +38,40 @@ public class AuthenticationController {
 
 	private final AuthenticationService authenticationService;
 
+	@Autowired
+	private OtpService otpService;
+
 	public AuthenticationController(JwtService jwtService, AuthenticationService authenticationService) {
 		this.jwtService = jwtService;
 		this.authenticationService = authenticationService;
 	}
 
+	// FOR ADMIN CREATION, ONLY USED IN POSTMAN, NOT IN FRONTEND
 	@PostMapping("/signup")
-	public ResponseEntity<ApiResponse<User>> register(@RequestBody RegisterUserDto registerUserDto) throws Exception {
-		ApiResponse<User> response = authenticationService.signup(registerUserDto);
+	public ResponseEntity<ApiResponse<User>> signup(@RequestBody RegisterUserDto registerUserDto) throws Exception {
+		ApiResponse<User> response = authenticationService.signup(registerUserDto, "ADMIN");
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	// Used to initiate register general users
+	@PostMapping("/initiate-register")
+	public ResponseEntity<ApiResponse<Map<String, String>>> initiateRegister(@RequestBody RegisterUserDto registerUserDto)
+			throws Exception {
+		String requestId = otpService.generateOtp(registerUserDto);
+		Map<String, String> responseData = new HashMap<>();
+		responseData.put("requestId", requestId);
+		return ResponseEntity.ok(new ApiResponse<>("SUCCESS", "Successfully sent OTP to email.", responseData));
+	}
+
+	// Used to confirm register general users
+	@PostMapping("/confirm-register")
+	public ResponseEntity<ApiResponse<User>> confirmRegister(@RequestBody ConfirmRegistrationDto confirmRegistrationDto)
+			throws Exception {
+		
+		OtpRequest otpRequest = otpService.verifyOtp(confirmRegistrationDto);
+		RegisterUserDto userDto = new RegisterUserDto(otpRequest.getEmail(), otpRequest.getPassword(), otpRequest.getFullName());
+		ApiResponse<User> response = authenticationService.signup(userDto, "USER");
+		
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 

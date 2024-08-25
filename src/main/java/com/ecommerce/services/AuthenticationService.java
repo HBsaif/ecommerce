@@ -40,7 +40,7 @@ public class AuthenticationService {
 		this.passwordEncoder = passwordEncoder;
 	}
 
-	public ApiResponse<User> signup(RegisterUserDto input) throws Exception {
+	public ApiResponse<User> signup(RegisterUserDto input, String role) throws Exception {
 		log.info("Signup request for user : {}", input.toString());
 
 		// Check if the email already exists
@@ -53,7 +53,7 @@ public class AuthenticationService {
 
 		User user = null;
 		user = userRepository.save(new User(input.getFullName(), input.getEmail(),
-				passwordEncoder.encode(input.getPassword()), "ADMIN", false));
+				passwordEncoder.encode(input.getPassword()), role, false));
 		if (user == null) {
 			log.error("Failed to signup user with email: {}", input.getEmail());
 			throw new Exception("Failed to signup user.");
@@ -114,4 +114,5 @@ public class AuthenticationService {
 
 		return new ApiResponse<>("SUCCESS", "Password changed successfully");
 	}
+	
 }
