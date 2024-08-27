@@ -31,10 +31,6 @@ public class OtpRequest {
 
     @Column(nullable = false)
     private String email;
-    
-    private String fullName;
-    
-    private String password;
 
     @Column(nullable = false)
     private String otp;

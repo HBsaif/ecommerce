@@ -55,22 +55,29 @@ public class AuthenticationController {
 
 	// Used to initiate register general users
 	@PostMapping("/initiate-register")
-	public ResponseEntity<ApiResponse<Map<String, String>>> initiateRegister(@RequestBody RegisterUserDto registerUserDto)
+	public ResponseEntity<ApiResponse<Map<String, String>>> initiateRegister(@RequestBody RegisterUserDto input)
 			throws Exception {
-		String requestId = otpService.generateOtp(registerUserDto);
+		
+		String requestId = otpService.sendOtp(input.getEmail());
 		Map<String, String> responseData = new HashMap<>();
 		responseData.put("requestId", requestId);
-		return ResponseEntity.ok(new ApiResponse<>("SUCCESS", "Successfully sent OTP to email.", responseData));
+		
+		ApiResponse<Map<String, String>> response = new ApiResponse<>("SUCCESS", "Successfully sent OTP to email.", responseData);
+		log.info("Response : ", response);
+		
+		return ResponseEntity.ok(response);
 	}
 
 	// Used to confirm register general users
 	@PostMapping("/confirm-register")
-	public ResponseEntity<ApiResponse<User>> confirmRegister(@RequestBody ConfirmRegistrationDto confirmRegistrationDto)
+	public ResponseEntity<ApiResponse<User>> confirmRegister(@RequestBody RegisterUserDto registerUserDto)
 			throws Exception {
 		
-		OtpRequest otpRequest = otpService.verifyOtp(confirmRegistrationDto);
-		RegisterUserDto userDto = new RegisterUserDto(otpRequest.getEmail(), otpRequest.getPassword(), otpRequest.getFullName());
-		ApiResponse<User> response = authenticationService.signup(userDto, "USER");
+		OtpRequest otpRequest = otpService.verifyOtp(registerUserDto.getRequestId(), registerUserDto.getOtp());
+		log.info("OTP verified for email : {}", otpRequest.getEmail());
+		
+		registerUserDto.setEmail(otpRequest.getEmail());
+		ApiResponse<User> response = authenticationService.signup(registerUserDto, "USER");
 		
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
