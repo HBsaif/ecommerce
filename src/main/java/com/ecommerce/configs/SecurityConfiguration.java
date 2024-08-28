@@ -1,14 +1,21 @@
 package com.ecommerce.configs;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.ecommerce.constants.UserTypes;
 
 @Configuration
 @EnableWebSecurity
@@ -29,11 +36,17 @@ public class SecurityConfiguration {
 		http.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(
 						requests -> requests.requestMatchers(version+"/auth/**").permitAll()
+						.requestMatchers(HttpMethod.GET, version+"/api/products/**").permitAll()
+						.requestMatchers(HttpMethod.POST, version+"/api/products/**").hasAnyRole(UserTypes.ADMIN.toString(), UserTypes.MODERATOR.toString())
+						.requestMatchers(HttpMethod.PUT, version+"/api/products/**").hasAnyRole(UserTypes.ADMIN.toString(), UserTypes.MODERATOR.toString())
+						.requestMatchers(HttpMethod.DELETE, version+"/api/products/**").hasAnyRole(UserTypes.ADMIN.toString(), UserTypes.MODERATOR.toString())
 						.requestMatchers(version+"/admin/**").hasRole("ADMIN")
 						.anyRequest().authenticated())
 				.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authenticationProvider(authenticationProvider)
-				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+//				.addFilterBefore(new RequestLoggingFilter(), JwtAuthenticationFilter.class)
+				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+				;
 
 		return http.build();
 	}

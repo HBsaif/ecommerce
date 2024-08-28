@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ecommerce.constants.StatusMessage;
+import com.ecommerce.constants.UserTypes;
 import com.ecommerce.dtos.ApiResponse;
 import com.ecommerce.dtos.ChangePasswordDto;
 import com.ecommerce.dtos.ConfirmRegistrationDto;
@@ -49,7 +51,7 @@ public class AuthenticationController {
 	// FOR ADMIN CREATION, ONLY USED IN POSTMAN, NOT IN FRONTEND
 	@PostMapping("/signup")
 	public ResponseEntity<ApiResponse<User>> signup(@RequestBody RegisterUserDto registerUserDto) throws Exception {
-		ApiResponse<User> response = authenticationService.signup(registerUserDto, "ADMIN");
+		ApiResponse<User> response = authenticationService.signup(registerUserDto, UserTypes.ADMIN.toString());
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
@@ -62,7 +64,7 @@ public class AuthenticationController {
 		Map<String, String> responseData = new HashMap<>();
 		responseData.put("requestId", requestId);
 		
-		ApiResponse<Map<String, String>> response = new ApiResponse<>("SUCCESS", "Successfully sent OTP to email.", responseData);
+		ApiResponse<Map<String, String>> response = new ApiResponse<>(StatusMessage.SUCCESS.toString(), "Successfully sent OTP to email.", responseData);
 		log.info("Response : ", response);
 		
 		return ResponseEntity.ok(response);
@@ -77,7 +79,7 @@ public class AuthenticationController {
 		log.info("OTP verified for email : {}", otpRequest.getEmail());
 		
 		registerUserDto.setEmail(otpRequest.getEmail());
-		ApiResponse<User> response = authenticationService.signup(registerUserDto, "USER");
+		ApiResponse<User> response = authenticationService.signup(registerUserDto, UserTypes.USER.toString());
 		
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
@@ -90,7 +92,7 @@ public class AuthenticationController {
 		String jwtToken = jwtService.generateToken(authenticatedUser);
 		boolean isFirstLogin = authenticatedUser.isFirstLogin();
 		LoginResponse loginResponse = new LoginResponse(jwtToken, jwtService.getExpirationTime(), isFirstLogin);
-		ApiResponse<LoginResponse> response = new ApiResponse<>("SUCCESS", "Login successful.", loginResponse);
+		ApiResponse<LoginResponse> response = new ApiResponse<>(StatusMessage.SUCCESS.toString(), "Login successful.", loginResponse);
 
 		log.info("Response : {}", gson.toJson(response));
 		return new ResponseEntity<>(response, HttpStatus.OK);
