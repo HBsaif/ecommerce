@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.ecommerce.entities.Category;
+import com.ecommerce.entities.Product;
 import com.ecommerce.exceptions.ResourceNotFoundException;
 import com.ecommerce.product.repositories.CategoryRepository;
 
@@ -22,6 +23,25 @@ public class CategoryService {
 	public Category getCategoryById(Long id) {
 		return categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id " + id));
+	}
+
+	public Category createProduct(Category category) {
+		return categoryRepository.save(category);
+	}
+
+	public Category updateCategory(Long id, Category category) {
+		Category existingCategory = getCategoryById(id);
+		
+		existingCategory.setName(category.getName());
+		existingCategory.setDescription(category.getDescription());
+		
+		return categoryRepository.save(existingCategory);
+	}
+
+	public void deleteCategory(Long id) {
+		Category category = getCategoryById(id);
+		categoryRepository.delete(category);
+		
 	}
 
 }
