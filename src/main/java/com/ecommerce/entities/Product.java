@@ -66,7 +66,11 @@ public class Product {
     private Date updatedAt;
 
     @ManyToOne
-    @JoinColumn(name = "created_by_user_id", nullable = false)
+    @JoinColumn(name = "created_by_user_id", nullable = false, updatable = false)
     private User createdBy;
+    
+    @ManyToOne
+    @JoinColumn(name = "updated_by_user_id")
+    private User updatedBy;
     // Getters and setters
 }

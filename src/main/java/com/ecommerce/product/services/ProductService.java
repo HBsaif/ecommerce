@@ -2,6 +2,7 @@ package com.ecommerce.product.services;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,8 +31,14 @@ public class ProductService {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    public List<ProductResponse> getAllProducts() {
+        List<Product> products =  productRepository.findAll();
+        // Convert List<Product> to List<ProductResponseDTO>
+        List<ProductResponse> productResponses = products.stream()
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+        
+        return productResponses;
     }
 
     public Product getProductById(Long id) {
@@ -50,24 +57,14 @@ public class ProductService {
         product.setCreatedAt(new Date());
         product.setCreatedBy(user);
         
-        log.info("Product : {}", product.toString());
-        
-        Product p = productRepository.save(product);
-        ProductResponse productResponse = new ProductResponse();
-        productResponse.setId(product.getId());
-        productResponse.setName(product.getName());
-        productResponse.setDescription(product.getDescription());
-        productResponse.setPrice(product.getPrice());
-        productResponse.setStockQuantity(product.getStockQuantity());
-        productResponse.setImageUrl(product.getImageUrl());
-        productResponse.setStatus(product.getStatus().toString());
-        productResponse.setCreatedAt(product.getCreatedAt());
-        productResponse.setCategoryId(product.getCategory().getId());
-        
-        return productResponse;
+        return convertToDTO(productRepository.save(product));
     }
 
-    public Product updateProduct(Long id, Product updatedProduct) {
+    public ProductResponse updateProduct(Long id, Product updatedProduct, String email) throws Exception {
+    	
+    	User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new Exception("User not found"));
+    	
         Product existingProduct = getProductById(id);
         existingProduct.setName(updatedProduct.getName());
         existingProduct.setDescription(updatedProduct.getDescription());
@@ -77,12 +74,35 @@ public class ProductService {
         existingProduct.setImageUrl(updatedProduct.getImageUrl());
         existingProduct.setStatus(updatedProduct.getStatus());
         existingProduct.setUpdatedAt(new Date());
-        return productRepository.save(existingProduct);
+        existingProduct.setUpdatedBy(user);
+        
+        return convertToDTO(productRepository.save(existingProduct));
     }
 
     public void deleteProduct(Long id) {
         Product product = getProductById(id);
         productRepository.delete(product);
     }
+    
+    private ProductResponse convertToDTO(Product product) {
+        ProductResponse responseDTO = new ProductResponse();
+        responseDTO.setId(product.getId());
+        responseDTO.setName(product.getName());
+        responseDTO.setDescription(product.getDescription());
+        responseDTO.setPrice(product.getPrice());
+        responseDTO.setStockQuantity(product.getStockQuantity());
+        responseDTO.setImageUrl(product.getImageUrl());
+        responseDTO.setStatus(product.getStatus().toString());
+        responseDTO.setCreatedAt(product.getCreatedAt());
+        responseDTO.setUpdatedAt(product.getUpdatedAt());
+        responseDTO.setCategoryId(product.getCategory().getId());
+
+        return responseDTO;
+    }
+
+	public ProductResponse getProductResponseById(Long id) {
+		
+		return convertToDTO(getProductById(id));
+	}
 }
 

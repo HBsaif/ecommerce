@@ -30,56 +30,64 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("${version}/api/products")
 public class ProductController {
 
-    @Autowired
-    private ProductService productService;
-    
-    Gson gson = new Gson();
+	@Autowired
+	private ProductService productService;
 
-    @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts() {
-        List<Product> products = productService.getAllProducts();
-        return new ResponseEntity<>(products, HttpStatus.OK);
-    }
+	Gson gson = new Gson();
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
-        Product product = productService.getProductById(id);
-        return new ResponseEntity<>(product, HttpStatus.OK);
-    }
+	// Implemented
+	@GetMapping
+	public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllProducts() {
+		List<ProductResponse> products = productService.getAllProducts();
+		ApiResponse<List<ProductResponse>> response = new ApiResponse<List<ProductResponse>>(
+				StatusMessage.SUCCESS.toString(), "Successfully fetched all products.", products);
+		log.info("Response : {}", gson.toJson(response));
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
 
-    @PostMapping("/add-product")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MODERATOR')")
-    public ResponseEntity<ApiResponse<ProductResponse>> createProduct(@RequestBody Product product, Authentication authentication) throws Exception {
-    	
-    	log.info("Request for adding product : {}", gson.toJson(product));
-    	
-    	if (authentication == null) {
-			log.error("Authentication required to change password.");
-			throw new Exception("Authentication required to change password.");
-		} else if (!authentication.isAuthenticated()) {
-			log.error("User is not authenticated.");
-			throw new Exception("User is not authenticated.");
-		}
-    	
-    	ProductResponse createdProduct = productService.createProduct(product, authentication.getName());
-        ApiResponse<ProductResponse> response = new ApiResponse<ProductResponse>(StatusMessage.SUCCESS.toString(), "Product added successfully.", createdProduct);
-        
-        log.info("Response : {}", gson.toJson(response));
-        return new ResponseEntity<ApiResponse<ProductResponse>>(response, HttpStatus.OK);
-    }
+	// Implemented
+	@GetMapping("/{id}")
+	public ResponseEntity<ApiResponse<ProductResponse>> getProductById(@PathVariable Long id) {
+		ProductResponse product = productService.getProductResponseById(id);
+		ApiResponse<ProductResponse> response = new ApiResponse<ProductResponse>(StatusMessage.SUCCESS.toString(),
+				"Successfully fetched product with id : " + id, product);
+		log.info("Response : {}", gson.toJson(response));
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
 
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MODERATOR')")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
-        Product updatedProduct = productService.updateProduct(id, product);
-        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
-    }
+	// Implemented
+	@PostMapping("/add-product")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('MODERATOR')")
+	public ResponseEntity<ApiResponse<ProductResponse>> createProduct(@RequestBody Product product,
+			Authentication authentication) throws Exception {
 
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MODERATOR')")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
-        productService.deleteProduct(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
+		ProductResponse createdProduct = productService.createProduct(product, authentication.getName());
+		ApiResponse<ProductResponse> response = new ApiResponse<ProductResponse>(StatusMessage.SUCCESS.toString(),
+				"Product added successfully.", createdProduct);
+
+		log.info("Response : {}", gson.toJson(response));
+		return new ResponseEntity<ApiResponse<ProductResponse>>(response, HttpStatus.OK);
+	}
+
+	// Implemented
+	@PutMapping("/update/{id}")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('MODERATOR')")
+	public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(@PathVariable Long id,
+			@RequestBody Product product, Authentication authentication) throws Exception {
+		ProductResponse updatedProduct = productService.updateProduct(id, product, authentication.getName());
+		ApiResponse<ProductResponse> response = new ApiResponse<ProductResponse>(StatusMessage.SUCCESS.toString(),
+				"Product updated successfully.", updatedProduct);
+		log.info("Response : {}", gson.toJson(response));
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	// Implemented
+	@DeleteMapping("/delete/{id}")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('MODERATOR')")
+	public ResponseEntity<ApiResponse<?>> deleteProduct(@PathVariable Long id) {
+		productService.deleteProduct(id);
+		ApiResponse<?> response = new ApiResponse<>(StatusMessage.SUCCESS.toString(), "Product deleted successfully.");
+		log.info("Response : {}", gson.toJson(response));
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
 }
-

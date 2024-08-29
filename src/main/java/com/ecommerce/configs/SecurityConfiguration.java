@@ -37,9 +37,13 @@ public class SecurityConfiguration {
 				.authorizeHttpRequests(
 						requests -> requests.requestMatchers(version+"/auth/**").permitAll()
 						.requestMatchers(HttpMethod.GET, version+"/api/products/**").permitAll()
+						.requestMatchers(HttpMethod.GET, version+"/api/categories/**").permitAll()
 						.requestMatchers(HttpMethod.POST, version+"/api/products/**").hasAnyRole(UserTypes.ADMIN.toString(), UserTypes.MODERATOR.toString())
 						.requestMatchers(HttpMethod.PUT, version+"/api/products/**").hasAnyRole(UserTypes.ADMIN.toString(), UserTypes.MODERATOR.toString())
 						.requestMatchers(HttpMethod.DELETE, version+"/api/products/**").hasAnyRole(UserTypes.ADMIN.toString(), UserTypes.MODERATOR.toString())
+						.requestMatchers(HttpMethod.POST, version+"/api/categories/**").hasAnyRole(UserTypes.ADMIN.toString(), UserTypes.MODERATOR.toString())
+						.requestMatchers(HttpMethod.PUT, version+"/api/categories/**").hasAnyRole(UserTypes.ADMIN.toString(), UserTypes.MODERATOR.toString())
+						.requestMatchers(HttpMethod.DELETE, version+"/api/categories/**").hasAnyRole(UserTypes.ADMIN.toString(), UserTypes.MODERATOR.toString())
 						.requestMatchers(version+"/admin/**").hasRole("ADMIN")
 						.anyRequest().authenticated())
 				.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

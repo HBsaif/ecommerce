@@ -22,4 +22,5 @@ public class ProductResponse {
     private String status;
     private Date createdAt;
     private long categoryId;
+    private Date updatedAt;
 }
