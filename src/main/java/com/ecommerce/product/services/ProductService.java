@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.ecommerce.entities.Category;
 import com.ecommerce.entities.Product;
 import com.ecommerce.entities.User;
 import com.ecommerce.exceptions.ResourceNotFoundException;

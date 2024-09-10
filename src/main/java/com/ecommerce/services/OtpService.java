@@ -6,11 +6,8 @@ import java.util.Optional;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.ecommerce.dtos.ConfirmRegistrationDto;
-import com.ecommerce.dtos.RegisterUserDto;
 import com.ecommerce.entities.OtpRequest;
 import com.ecommerce.entities.User;
 import com.ecommerce.exceptions.UserAlreadyExistsException;

@@ -5,13 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.ecommerce.repositories.TokenBlacklistRepository;
 import com.ecommerce.util.CommonServiceHelper;
 import com.ecommerce.util.SPName;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -27,14 +25,18 @@ public class TokenBlackListService {
     @Autowired
     private CommonServiceHelper helper;
     
-    @Autowired
-    private TokenBlacklistRepository tokenBlacklistRepository;
+    
 
-    @Scheduled(fixedRate = 3600000) // Run every hour
-    @Transactional
-    public void removeExpiredTokens() {
-        tokenBlacklistRepository.deleteExpiredTokens();
+    // Scheduled to run every hour (3600000 milliseconds)
+    @Scheduled(fixedRate = 3600000) 
+    public void cleanUpExpiredTokens() {
+        try {
+            helper.executeStoredProcedure("delete_expired_tokens", null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+    
 
     public void blacklistToken(String token, Date expirationTime) {
         
