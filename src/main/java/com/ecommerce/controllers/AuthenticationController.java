@@ -16,7 +16,6 @@ import com.ecommerce.constants.StatusMessage;
 import com.ecommerce.constants.UserTypes;
 import com.ecommerce.dtos.ApiResponse;
 import com.ecommerce.dtos.ChangePasswordDto;
-import com.ecommerce.dtos.ConfirmRegistrationDto;
 import com.ecommerce.dtos.LoginUserDto;
 import com.ecommerce.dtos.RegisterUserDto;
 import com.ecommerce.entities.OtpRequest;
@@ -27,6 +26,7 @@ import com.ecommerce.services.JwtService;
 import com.ecommerce.services.OtpService;
 import com.google.gson.Gson;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
 @RequestMapping("${version}/auth")
@@ -34,7 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AuthenticationController {
 
-	Gson gson = new Gson();
+	@Autowired
+	private Gson gson;
 
 	private final JwtService jwtService;
 
@@ -116,4 +117,17 @@ public class AuthenticationController {
 		log.info("Response : {}", gson.toJson(response));
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
+	
+	@PostMapping("/logout")
+    public ResponseEntity<ApiResponse<?>> logoutUser(HttpServletRequest request) {
+        // Get the token from the Authorization header
+        String token = request.getHeader("Authorization").replace("Bearer ", "");
+        
+        // Invalidate the token by adding it to a blacklist or setting its expiration
+        jwtService.invalidateToken(token);
+        ApiResponse<?> response = new ApiResponse<>("SUCCESS", "Logged out successfully");
+        log.info("Response : {}", gson.toJson(response));
+        
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 }

@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import com.ecommerce.repositories.UserRepository;
+import com.google.gson.Gson;
 
 @Configuration
 public class ApplicationConfiguration {
@@ -18,6 +19,11 @@ public class ApplicationConfiguration {
 
     public ApplicationConfiguration(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+    
+    @Bean
+    Gson gson() {
+        return new Gson(); // You can customize the Gson instance here if needed
     }
 
     @Bean
@@ -32,7 +38,7 @@ public class ApplicationConfiguration {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+    AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 

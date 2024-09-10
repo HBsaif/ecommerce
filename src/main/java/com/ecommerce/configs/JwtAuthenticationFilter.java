@@ -1,13 +1,10 @@
 package com.ecommerce.configs;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.core.annotation.Order;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -44,61 +41,68 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		this.handlerExceptionResolver = handlerExceptionResolver;
 	}
 
+	
 	@Override
 	protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
-			@NonNull FilterChain filterChain) throws ServletException, IOException {
-		
-		// Wrap the request
-        CachedBodyHttpServletRequestWrapper wrappedRequest = new CachedBodyHttpServletRequestWrapper(request);
+	                                @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-		// Log initial request details
-		log.info("Request URL: {}", wrappedRequest.getRequestURL());
-		log.info("Request Method: {}", wrappedRequest.getMethod());
-		log.info("Request Headers: {}", getHeaders(wrappedRequest));
-		log.info("Request Body: {}", getBody(wrappedRequest));
+	    // Wrap the request
+	    CachedBodyHttpServletRequestWrapper wrappedRequest = new CachedBodyHttpServletRequestWrapper(request);
 
+	    // Log initial request details
+	    log.info("Request URL: {}", wrappedRequest.getRequestURL());
+	    log.info("Request Method: {}", wrappedRequest.getMethod());
+	    log.info("Request Headers: {}", getHeaders(wrappedRequest));
+	    log.info("Request Body: {}", getBody(wrappedRequest));
 
-		final String authHeader = wrappedRequest.getHeader("Authorization");
+	    final String authHeader = wrappedRequest.getHeader("Authorization");
 
-		if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-			filterChain.doFilter(wrappedRequest, response);
-			return;
-		}
+	    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+	        filterChain.doFilter(wrappedRequest, response);
+	        return;
+	    }
 
-		try {
-			final String jwt = authHeader.substring(7);
-			final String userEmail = jwtService.extractUsername(jwt);
+	    try {
+	        final String jwt = authHeader.substring(7);
+	        final String userEmail = jwtService.extractUsername(jwt);
 
-			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+	        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-			if (userEmail != null && authentication == null) {
-				UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+	        if (userEmail != null && authentication == null) {
+	            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
-				if (jwtService.isTokenValid(jwt, userDetails)) {
-					// Extract roles from JWT and ensure they're prefixed with "ROLE_"
-					List<String> roles = jwtService.extractRoles(jwt); // Implement this method in jwtService
-					List<GrantedAuthority> authorities = roles.stream()
-							.map(role -> new SimpleGrantedAuthority("ROLE_" + role)).collect(Collectors.toList());
+	            // Check if token is valid or revoked
+	            if (!jwtService.isTokenValid(jwt, userDetails)) {
+	                // If token is invalid or revoked, send 401 Unauthorized response
+	                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+	                response.getWriter().write("{\r\n"
+	                		+ "    \"status\": \"FAIL\",\r\n"
+	                		+ "    \"message\": \"Invalid token.\"\r\n"
+	                		+ "}");
+	                return; // Don't continue the filter chain
+	            }
 
-//                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-//                            userDetails,
-//                            null,
-//                            userDetails.getAuthorities()
-//                    );
+	            // Extract roles from JWT and ensure they're prefixed with "ROLE_"
+	            List<String> roles = jwtService.extractRoles(jwt);
+	            List<GrantedAuthority> authorities = roles.stream()
+	                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+	                    .collect(Collectors.toList());
 
-					UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
-							null, authorities);
+	            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+	                    userDetails, null, authorities
+	            );
 
-					authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-					SecurityContextHolder.getContext().setAuthentication(authToken);
-				}
-			}
+	            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+	            SecurityContextHolder.getContext().setAuthentication(authToken);
+	        }
 
-			filterChain.doFilter(wrappedRequest, response);
-		} catch (Exception exception) {
-			handlerExceptionResolver.resolveException(wrappedRequest, response, null, exception);
-		}
+	        filterChain.doFilter(wrappedRequest, response);
+
+	    } catch (Exception exception) {
+	        handlerExceptionResolver.resolveException(wrappedRequest, response, null, exception);
+	    }
 	}
+
 
 	private String getHeaders(HttpServletRequest request) {
 

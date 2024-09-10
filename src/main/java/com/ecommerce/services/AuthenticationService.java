@@ -1,7 +1,6 @@
 package com.ecommerce.services;
 
 import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,11 +24,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AuthenticationService {
 
-	Gson gson = new Gson();
+	@Autowired
+	private Gson gson;
 
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final AuthenticationManager authenticationManager;
+	
 	@Autowired
 	private UserService userService;
 
@@ -39,6 +40,8 @@ public class AuthenticationService {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
 	}
+
+    
 
 	public ApiResponse<User> signup(RegisterUserDto input, String role) throws Exception {
 		log.info("Signup request for user : {}", input.toString());
