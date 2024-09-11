@@ -1,5 +1,6 @@
 package com.ecommerce.util;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -25,41 +26,47 @@ public class CommonServiceHelper {
      * @return A map of output parameters where key is the parameter name and value is the parameter value.
      */
 	public Map<String, Object> executeStoredProcedure(String procedureName, Map<String, Object> parameters) {
-        log.info("Executing stored procedure '{}' with parameters: {}", procedureName, parameters);
+	    log.info("Executing stored procedure '{}' with parameters: {}", procedureName, parameters);
 
-        // Create the StoredProcedureQuery instance
-        StoredProcedureQuery storedProcedureQuery = entityManager.createStoredProcedureQuery(procedureName);
+	    // Create the StoredProcedureQuery instance
+	    StoredProcedureQuery storedProcedureQuery = entityManager.createStoredProcedureQuery(procedureName);
 
-        // Set input parameters and register output parameters
-        parameters.forEach((key, value) -> {
-            if (value instanceof Map) {
-                // Handle output parameters
-                Class<?> type = (Class<?>) ((Map<?, ?>) value).get("type");
-                storedProcedureQuery.registerStoredProcedureParameter(key, type, ParameterMode.OUT);
-            } else {
-                // Handle input parameters
-                storedProcedureQuery.registerStoredProcedureParameter(key, value.getClass(), ParameterMode.IN);
-                storedProcedureQuery.setParameter(key, value);
-            }
-        });
+	    // If parameters are provided, set input parameters and register output parameters
+	    if (parameters != null && !parameters.isEmpty()) {
+	        parameters.forEach((key, value) -> {
+	            if (value instanceof Map) {
+	                // Handle output parameters
+	                Class<?> type = (Class<?>) ((Map<?, ?>) value).get("type");
+	                storedProcedureQuery.registerStoredProcedureParameter(key, type, ParameterMode.OUT);
+	            } else {
+	                // Handle input parameters
+	                storedProcedureQuery.registerStoredProcedureParameter(key, value.getClass(), ParameterMode.IN);
+	                storedProcedureQuery.setParameter(key, value);
+	            }
+	        });
+	    }
 
-        // Execute the stored procedure
-        storedProcedureQuery.execute();
+	    // Execute the stored procedure
+	    storedProcedureQuery.execute();
 
-        // Collect output parameters
-        Map<String, Object> outputParameters = parameters.entrySet().stream()
-            .filter(entry -> entry.getValue() instanceof Map)
-            .collect(Collectors.toMap(
-                Map.Entry::getKey,
-                entry -> {
-                    Object output = storedProcedureQuery.getOutputParameterValue(entry.getKey());
-                    log.info("Output parameter '{}' received with value: {}", entry.getKey(), output);
-                    return output;
-                }
-            ));
+	    // Collect output parameters if any exist
+	    Map<String, Object> outputParameters = new HashMap<>();
+	    if (parameters != null) {
+	        outputParameters = parameters.entrySet().stream()
+	            .filter(entry -> entry.getValue() instanceof Map)
+	            .collect(Collectors.toMap(
+	                Map.Entry::getKey,
+	                entry -> {
+	                    Object output = storedProcedureQuery.getOutputParameterValue(entry.getKey());
+	                    log.info("Output parameter '{}' received with value: {}", entry.getKey(), output);
+	                    return output;
+	                }
+	            ));
+	    }
 
-        log.info("Stored procedure '{}' executed successfully. Output parameters: {}", procedureName, outputParameters);
+	    log.info("Stored procedure '{}' executed successfully. Output parameters: {}", procedureName, outputParameters);
 
-        return outputParameters;
-    }
+	    return outputParameters;
+	}
+
 }

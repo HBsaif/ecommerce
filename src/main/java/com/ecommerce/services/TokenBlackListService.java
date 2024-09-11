@@ -2,7 +2,6 @@ package com.ecommerce.services;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.ecommerce.util.CommonServiceHelper;
@@ -10,6 +9,7 @@ import com.ecommerce.util.SPName;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
+@Slf4j
 public class TokenBlackListService {
 	
     @PersistenceContext
@@ -28,10 +29,12 @@ public class TokenBlackListService {
     
 
     // Scheduled to run every hour (3600000 milliseconds)
-    @Scheduled(fixedRate = 3600000) 
+//    @Scheduled(fixedRate = 3600000) 
+//    @Scheduled(fixedRate = 120000) 
     public void cleanUpExpiredTokens() {
         try {
-            helper.executeStoredProcedure("delete_expired_tokens", null);
+        	log.info("[Starting scheduled job] - Cleanup Expired Tokens.");
+            helper.executeStoredProcedure(SPName.SP_DELETE_EXPIRED_TOKENS.toString(), null);
         } catch (Exception e) {
             e.printStackTrace();
         }

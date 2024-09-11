@@ -21,6 +21,7 @@ import com.ecommerce.dtos.RegisterUserDto;
 import com.ecommerce.entities.OtpRequest;
 import com.ecommerce.entities.User;
 import com.ecommerce.model.LoginResponse;
+import com.ecommerce.repositories.UserRepository;
 import com.ecommerce.services.AuthenticationService;
 import com.ecommerce.services.JwtService;
 import com.ecommerce.services.OtpService;
@@ -36,6 +37,9 @@ public class AuthenticationController {
 
 	@Autowired
 	private Gson gson;
+	
+	@Autowired
+	private UserRepository userRepository;
 
 	private final JwtService jwtService;
 
@@ -90,9 +94,10 @@ public class AuthenticationController {
 			throws Exception {
 
 		User authenticatedUser = authenticationService.authenticate(loginUserDto);
-		String jwtToken = jwtService.generateToken(authenticatedUser);
+		String accessToken = jwtService.generateAccessToken(authenticatedUser);
+		 String refreshToken = jwtService.generateRefreshToken(authenticatedUser);
 		boolean isFirstLogin = authenticatedUser.isFirstLogin();
-		LoginResponse loginResponse = new LoginResponse(jwtToken, jwtService.getExpirationTime(), isFirstLogin);
+		LoginResponse loginResponse = new LoginResponse(accessToken, refreshToken, jwtService.getExpirationTime(), isFirstLogin);
 		ApiResponse<LoginResponse> response = new ApiResponse<>(StatusMessage.SUCCESS.toString(), "Login successful.", loginResponse);
 
 		log.info("Response : {}", gson.toJson(response));
@@ -118,13 +123,45 @@ public class AuthenticationController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 	
+	@PostMapping("/refresh-token")
+	public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(@RequestBody Map<String, String> request) {
+	    String refreshToken = request.get("refreshToken");
+	    
+	    if (refreshToken == null || refreshToken.isEmpty()) {
+	        return ResponseEntity.badRequest().body(new ApiResponse<>("FAIL", "Refresh token is required", null));
+	    }
+
+	    try {
+	        // Validate refresh token
+	        if (!jwtService.isTokenValid(refreshToken)) {
+	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiResponse<>("FAIL", "Invalid refresh token", null));
+	        }
+	        String username = jwtService.extractUsername(refreshToken);
+	        User user = userRepository.findByEmail(username)
+	                .orElseThrow(() -> new RuntimeException("User not found"));
+	        String newAccessToken = jwtService.generateAccessToken(user);
+	        String newRefreshToken = jwtService.generateRefreshToken(user);
+	        
+	        LoginResponse responseData = new LoginResponse(newAccessToken, newRefreshToken, jwtService.getExpirationTime(), false);
+
+	        return ResponseEntity.ok(new ApiResponse<>("SUCCESS", "Token refreshed successfully", responseData));
+	    } catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>("FAIL", "Error refreshing token", null));
+	    }
+	}
+
+
+	
 	@PostMapping("/logout")
     public ResponseEntity<ApiResponse<?>> logoutUser(HttpServletRequest request) {
         // Get the token from the Authorization header
-        String token = request.getHeader("Authorization").replace("Bearer ", "");
-        
+        String token = request.getHeader("Authorization").replace("Bearer ", "");  
+        String refreshToken = request.getHeader("Refresh-Token"); // Assuming you send refresh token in a header
         // Invalidate the token by adding it to a blacklist or setting its expiration
         jwtService.invalidateToken(token);
+        if (refreshToken != null) {
+            jwtService.invalidateToken(refreshToken);
+        }
         ApiResponse<?> response = new ApiResponse<>("SUCCESS", "Logged out successfully");
         log.info("Response : {}", gson.toJson(response));
         
