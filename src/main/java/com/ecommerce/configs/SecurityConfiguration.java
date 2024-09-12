@@ -32,7 +32,7 @@ public class SecurityConfiguration {
 		http.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(
 						requests -> requests.requestMatchers(version+"/auth/**").permitAll()
-//						.requestMatchers(HttpMethod.GET, version+"/api/products/**").permitAll()
+						.requestMatchers(HttpMethod.GET, version+"/api/products/**").permitAll()
 						.requestMatchers(HttpMethod.GET, version+"/api/categories/**").permitAll()
 						.requestMatchers(HttpMethod.POST, version+"/api/products/**").hasAnyRole(UserTypes.ADMIN.toString(), UserTypes.MODERATOR.toString())
 						.requestMatchers(HttpMethod.PUT, version+"/api/products/**").hasAnyRole(UserTypes.ADMIN.toString(), UserTypes.MODERATOR.toString())
