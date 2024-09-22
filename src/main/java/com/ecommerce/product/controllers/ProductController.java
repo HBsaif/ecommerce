@@ -2,6 +2,7 @@ package com.ecommerce.product.controllers;
 
 import java.util.List;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,9 @@ import com.google.gson.Gson;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.data.domain.Page;
+import org.springframework.web.bind.annotation.RequestParam;
+
 @Slf4j
 @RestController
 @RequestMapping("${version}/api/products")
@@ -36,14 +40,31 @@ public class ProductController {
 	Gson gson = new Gson();
 
 	// Implemented
-	@GetMapping
-	public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllProducts() {
-		List<ProductResponse> products = productService.getAllProducts();
-		ApiResponse<List<ProductResponse>> response = new ApiResponse<List<ProductResponse>>(
-				StatusMessage.SUCCESS.toString(), "Successfully fetched all products.", products);
+//	@GetMapping
+//	public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllProducts() {
+//		List<ProductResponse> products = productService.getAllProducts();
+//		ApiResponse<List<ProductResponse>> response = new ApiResponse<List<ProductResponse>>(
+//				StatusMessage.SUCCESS.toString(), "Successfully fetched all products.", products);
+//		log.info("Response : {}", gson.toJson(response));
+//		return new ResponseEntity<>(response, HttpStatus.OK);
+//	}
+	
+	// Get paginated products
+    @GetMapping
+    public Page<ProductResponse> getAllProducts(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size) {
+        return productService.getAllProducts(page, size);
+    }
+    
+    @GetMapping("/new-arrivals")
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> getNewArrivals(@RequestParam(defaultValue = "4") int n) {
+        List<ProductResponse> products = productService.getLatestProducts(n);
+        ApiResponse<List<ProductResponse>> response = new ApiResponse<List<ProductResponse>>(
+				StatusMessage.SUCCESS.toString(), "Successfully fetched new products.", products);
 		log.info("Response : {}", gson.toJson(response));
 		return new ResponseEntity<>(response, HttpStatus.OK);
-	}
+    }
 
 	// Implemented
 	@GetMapping("/{id}")
