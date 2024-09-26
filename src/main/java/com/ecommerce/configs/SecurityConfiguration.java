@@ -32,6 +32,9 @@ public class SecurityConfiguration {
 		http.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(
 						requests -> requests.requestMatchers(version+"/auth/**").permitAll()
+						.requestMatchers("/swagger-ui/**",
+		                        "/swagger-resources/*",
+		                        "/v3/api-docs/**").permitAll()
 						.requestMatchers(HttpMethod.GET, version+"/api/products/**").permitAll()
 						.requestMatchers(HttpMethod.GET, version+"/api/categories/**").permitAll()
 						.requestMatchers(HttpMethod.POST, version+"/api/products/**").hasAnyRole(UserTypes.ADMIN.toString(), UserTypes.MODERATOR.toString())

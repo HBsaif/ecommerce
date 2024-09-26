@@ -75,6 +75,22 @@ public class ProductController {
 		log.info("Response : {}", gson.toJson(response));
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
+	
+	@GetMapping("/category/{categoryId}")
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> getProductsByCategory(
+            @PathVariable Long categoryId) {
+        
+        List<ProductResponse> products = productService.getProductsByCategoryId(categoryId);
+
+        ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
+                StatusMessage.SUCCESS.toString(),
+                "Successfully fetched products for category with id: " + categoryId,
+                products
+        );
+
+        log.info("Response : {}", gson.toJson(response));
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 
 	// Implemented
 	@PostMapping("/add-product")
@@ -91,7 +107,7 @@ public class ProductController {
 	}
 
 	// Implemented
-	@PutMapping("/update/{id}")
+	@PostMapping("/update/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('MODERATOR')")
 	public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(@PathVariable Long id,
 			@RequestBody Product product, Authentication authentication) throws Exception {
@@ -103,7 +119,7 @@ public class ProductController {
 	}
 
 	// Implemented
-	@DeleteMapping("/delete/{id}")
+	@PostMapping("/delete/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('MODERATOR')")
 	public ResponseEntity<ApiResponse<?>> deleteProduct(@PathVariable Long id) {
 		productService.deleteProduct(id);

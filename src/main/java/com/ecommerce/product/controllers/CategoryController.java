@@ -66,7 +66,7 @@ public class CategoryController {
 	}
 
 	// Implemented
-	@PutMapping("/update/{id}")
+	@PostMapping("/update/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('MODERATOR')")
 	public ResponseEntity<ApiResponse<Category>> updateCategory(@PathVariable Long id,
 			@RequestBody Category category) throws Exception {
@@ -77,7 +77,7 @@ public class CategoryController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 	
-	@DeleteMapping("/delete/{id}")
+	@PostMapping("/delete/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('MODERATOR')")
 	public ResponseEntity<ApiResponse<?>> deleteCategory(@PathVariable Long id) {
 		categoryService.deleteCategory(id);

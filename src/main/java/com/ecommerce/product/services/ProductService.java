@@ -127,4 +127,10 @@ public class ProductService {
                 .map(this::convertToDTO) // Ensure you have a method to convert Product to ProductResponse
                 .collect(Collectors.toList());
     }
+
+	public List<ProductResponse> getProductsByCategoryId(Long categoryId) {
+        return productRepository.findByCategoryId(categoryId).stream()
+                       .map(this::convertToDTO)
+                       .collect(Collectors.toList());
+	}
 }
