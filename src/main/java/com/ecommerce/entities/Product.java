@@ -18,15 +18,14 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 @Entity
 @Table(name = "products")
-@Getter
-@Setter
-@ToString
+@Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Product {
 
