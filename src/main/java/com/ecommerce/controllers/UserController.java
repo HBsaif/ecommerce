@@ -33,7 +33,7 @@ public class UserController {
             User user = optUser.get(); // Safe access
             response = new ApiResponse<>("SUCCESS", "User found.", user.getId());
         } else {
-        	response = new ApiResponse<>("SUCCESS", "User found.");
+        	response = new ApiResponse<>("SUCCESS", "User not found.");
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

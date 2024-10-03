@@ -21,6 +21,7 @@ import com.ecommerce.dtos.RegisterUserDto;
 import com.ecommerce.entities.OtpRequest;
 import com.ecommerce.entities.User;
 import com.ecommerce.model.LoginResponse;
+import com.ecommerce.product.services.ShoppingCartService;
 import com.ecommerce.repositories.UserRepository;
 import com.ecommerce.services.AuthenticationService;
 import com.ecommerce.services.JwtService;
@@ -40,6 +41,9 @@ public class AuthenticationController {
 	
 	@Autowired
 	private UserRepository userRepository;
+	
+	@Autowired
+	private ShoppingCartService shoppingCartService;
 
 	private final JwtService jwtService;
 
@@ -95,9 +99,10 @@ public class AuthenticationController {
 
 		User authenticatedUser = authenticationService.authenticate(loginUserDto);
 		String accessToken = jwtService.generateAccessToken(authenticatedUser);
-		 String refreshToken = jwtService.generateRefreshToken(authenticatedUser);
+		String refreshToken = jwtService.generateRefreshToken(authenticatedUser);
 		boolean isFirstLogin = authenticatedUser.isFirstLogin();
-		LoginResponse loginResponse = new LoginResponse(accessToken, refreshToken, jwtService.getExpirationTime(), isFirstLogin);
+		int cartItems = shoppingCartService.getCartItemsNo(loginUserDto.getEmail());
+		LoginResponse loginResponse = new LoginResponse(accessToken, refreshToken, jwtService.getExpirationTime(), isFirstLogin, cartItems);
 		ApiResponse<LoginResponse> response = new ApiResponse<>(StatusMessage.SUCCESS.toString(), "Login successful.", loginResponse);
 
 		log.info("Response : {}", gson.toJson(response));
@@ -142,7 +147,8 @@ public class AuthenticationController {
 	        String newAccessToken = jwtService.generateAccessToken(user);
 	        String newRefreshToken = jwtService.generateRefreshToken(user);
 	        
-	        LoginResponse responseData = new LoginResponse(newAccessToken, newRefreshToken, jwtService.getExpirationTime(), false);
+	        
+	        LoginResponse responseData = new LoginResponse(newAccessToken, newRefreshToken, jwtService.getExpirationTime(), false, 0);
 
 	        return ResponseEntity.ok(new ApiResponse<>("SUCCESS", "Token refreshed successfully", responseData));
 	    } catch (Exception e) {

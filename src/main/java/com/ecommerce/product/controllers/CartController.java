@@ -18,6 +18,7 @@ import com.ecommerce.constants.StatusMessage;
 import com.ecommerce.dtos.ApiResponse;
 import com.ecommerce.entities.ShoppingCart;
 import com.ecommerce.product.dtos.AddCartItemRequest;
+import com.ecommerce.product.dtos.ShoppingCartDTO;
 import com.ecommerce.product.services.ShoppingCartService;
 import com.google.gson.Gson;
 
@@ -67,11 +68,12 @@ public class CartController {
 //        return ResponseEntity.ok().body(Map.of("status", "SUCCESS", "message", "Item removed from cart"));
 //    }
 //
-//    @GetMapping
-//    public ResponseEntity<?> getCart(@RequestParam Long userId) {
-//        ShoppingCart cart = shoppingCartService.getCartByUser(userId);
-//        return ResponseEntity.ok().body(Map.of("status", "SUCCESS", "message", "Cart retrieved", "data", cart));
-//    }
+    @GetMapping
+    public ResponseEntity<ApiResponse<ShoppingCartDTO>> getCart(@RequestParam int userId) {
+    	ShoppingCartDTO cart = shoppingCartService.getCartByUser(userId);
+        ApiResponse<ShoppingCartDTO> response = new ApiResponse<>("SUCCESS", "Cart items fetched", cart);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 //
 //    @DeleteMapping("/clear")
 //    public ResponseEntity<?> clearCart(@RequestParam Long userId) {

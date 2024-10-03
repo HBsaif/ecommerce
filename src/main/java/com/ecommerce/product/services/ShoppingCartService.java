@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,10 @@ import com.ecommerce.entities.CartItem;
 import com.ecommerce.entities.Product;
 import com.ecommerce.entities.ShoppingCart;
 import com.ecommerce.entities.User;
+import com.ecommerce.product.dtos.CartItemDTO;
+import com.ecommerce.product.dtos.ShoppingCartDTO;
+import com.ecommerce.product.repositories.ShoppingCartRepository;
+import com.ecommerce.repositories.UserRepository;
 import com.ecommerce.util.CommonServiceHelper;
 import com.ecommerce.util.SPName;
 
@@ -26,6 +32,15 @@ public class ShoppingCartService {
 
 	@Autowired
 	private CommonServiceHelper helper;
+	
+	@Autowired
+    private ShoppingCartRepository shoppingCartRepository;
+	
+	@Autowired
+	private ProductService productService;
+	
+	@Autowired
+	private UserRepository userRepository;
 
 	public ShoppingCart addItemToCart(Long userId, Long productId, int quantity) throws Exception {
         Map<String, Object> params = new LinkedHashMap<>();
@@ -125,6 +140,68 @@ public class ShoppingCartService {
         
         return items;
     }
+
+    public ShoppingCartDTO getCartByUser(int userId) {
+        // Fetch the shopping cart associated with the user ID
+        Optional<ShoppingCart> optionalCart = shoppingCartRepository.findByUserId(userId);
+        
+        if (optionalCart.isPresent()) {
+            ShoppingCart cart = optionalCart.get();
+            ShoppingCartDTO dto = new ShoppingCartDTO();
+            dto.setId(cart.getId());
+            dto.setUserId(cart.getUser().getId());
+            
+            // Fetch the cart items and map them to DTOs
+            dto.setCartItems(cart.getItems().stream()
+                .map(item -> {
+                    CartItemDTO itemDTO = new CartItemDTO();
+                    itemDTO.setId(item.getId());
+                    itemDTO.setPriceAtTime(item.getPriceAtTime());
+                    itemDTO.setQuantity(item.getQuantity());
+                    
+                    // Access product details directly from the CartItem
+                    Product product = item.getProduct();
+                    if (product != null) {
+                        itemDTO.setName(product.getName()); // Set product name
+                        itemDTO.setImageUrl(product.getImageUrl()); // Set product image URL
+                    }
+                    
+                    return itemDTO;
+                })
+                .collect(Collectors.toList()));
+            return dto;
+        }
+        
+        // Check if the cart exists and return it, otherwise return null
+        return null; // Return null if no cart is found
+    }
+
+    public int getCartItemsNo(String email) {
+        // Fetch the user based on the email
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            
+            // Fetch the shopping cart associated with the user
+            Optional<ShoppingCart> optionalCart = shoppingCartRepository.findByUserId(user.getId());
+            
+            if (optionalCart.isPresent()) {
+                ShoppingCart cart = optionalCart.get();
+                
+                // Sum up the quantities of all items in the cart
+                return cart.getItems().stream()
+                           .mapToInt(CartItem::getQuantity)
+                           .sum();
+            }
+        }
+        
+        // If no user or cart is found, return 0
+        return 0;
+    }
+
+
+
 
 //    public void removeItemFromCart(Long userId, Long productId) {
 //        ShoppingCart cart = getCartByUser(userId);

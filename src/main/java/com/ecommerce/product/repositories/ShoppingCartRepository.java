@@ -9,6 +9,6 @@ import com.ecommerce.entities.ShoppingCart;
 
 public interface ShoppingCartRepository extends JpaRepository<ShoppingCart, Long> {
 
-	Optional<Product> findByUserId(Long userId);
+	Optional<ShoppingCart> findByUserId(int userId);
 
 }
