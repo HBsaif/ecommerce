@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.ecommerce.entities.CartItem;
 import com.ecommerce.entities.Product;
@@ -19,6 +20,7 @@ import com.ecommerce.entities.ShoppingCart;
 import com.ecommerce.entities.User;
 import com.ecommerce.product.dtos.CartItemDTO;
 import com.ecommerce.product.dtos.ShoppingCartDTO;
+import com.ecommerce.product.repositories.CartItemRepository;
 import com.ecommerce.product.repositories.ShoppingCartRepository;
 import com.ecommerce.repositories.UserRepository;
 import com.ecommerce.util.CommonServiceHelper;
@@ -35,6 +37,9 @@ public class ShoppingCartService {
 	
 	@Autowired
     private ShoppingCartRepository shoppingCartRepository;
+	
+	@Autowired
+	private CartItemRepository cartItemRepository;
 	
 	@Autowired
 	private ProductService productService;
@@ -198,6 +203,50 @@ public class ShoppingCartService {
         
         // If no user or cart is found, return 0
         return 0;
+    }
+
+    @Transactional
+    public CartItem updateCartItem(int userId, int itemId, Integer newQuantity) throws Exception {
+    	log.info("Start to update cart...");
+        // Fetch the cart by userId
+        Optional<ShoppingCart> cartOptional = shoppingCartRepository.findByUserId(userId);
+        if (cartOptional.isEmpty()) {
+        	log.info("Cart not found for the user id {}", userId);
+            throw new Exception("Cart not found for the user.");
+           
+        }
+
+        ShoppingCart cart = cartOptional.get();
+        log.info("Cart : {}", cart.toString());
+        
+        // Fetch the cart item by itemId and cartId
+        Optional<CartItem> cartItemOptional = cartItemRepository.findByIdAndCartId(itemId, cart.getId());
+        if (cartItemOptional.isEmpty()) {
+            throw new Exception("Cart item not found.");
+        }
+
+        CartItem cartItem = cartItemOptional.get();
+        log.info("Cart Item : {}", cartItem.toString());
+        
+        // If newQuantity is null or <= 0, remove the item from the cart
+        if (newQuantity == null || newQuantity <= 0) {
+            cartItemRepository.delete(cartItem); // Correct repository used here
+            return null; // Item was removed
+        }
+
+        // Update the quantity of the cart item
+        cartItem.setQuantity(newQuantity);
+        cartItem = cartItemRepository.save(cartItem);
+        
+        log.info("Updated Cart Item : {}", cartItem.toString());
+
+        // Update the cart's updated_at timestamp
+        cart.setUpdatedAt(new java.util.Date());
+        shoppingCartRepository.save(cart);
+        
+        log.info("Updated Cart : {}", cart.toString());
+
+        return cartItem; // Return the updated cart item
     }
 
 

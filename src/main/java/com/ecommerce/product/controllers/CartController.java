@@ -16,9 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ecommerce.constants.StatusMessage;
 import com.ecommerce.dtos.ApiResponse;
+import com.ecommerce.entities.CartItem;
 import com.ecommerce.entities.ShoppingCart;
 import com.ecommerce.product.dtos.AddCartItemRequest;
+import com.ecommerce.product.dtos.CartItemDTO;
 import com.ecommerce.product.dtos.ShoppingCartDTO;
+import com.ecommerce.product.dtos.UpdateItemQuantityRequest;
 import com.ecommerce.product.services.ShoppingCartService;
 import com.google.gson.Gson;
 
@@ -49,15 +52,13 @@ public class CartController {
     }
 
 
-//    @PutMapping("/items/{itemId}")
-//    public ResponseEntity<?> updateCartItem(
-//            @RequestParam Long userId,
-//            @PathVariable Long itemId,
-//            @RequestParam int quantity) {
-//
-//        shoppingCartService.updateCartItem(userId, itemId, quantity);
-//        return ResponseEntity.ok().body(Map.of("status", "SUCCESS", "message", "Cart item updated"));
-//    }
+    @PostMapping("/update-item")
+    public ResponseEntity<ApiResponse<CartItem>> updateCartItem(@RequestBody UpdateItemQuantityRequest request) throws Exception {
+		
+		CartItem cart = shoppingCartService.updateCartItem(request.getUserId(), request.getItemId(), request.getQuantity());
+		return ResponseEntity.ok(new ApiResponse<CartItem>(StatusMessage.SUCCESS.toString(), "Item quantity updated", cart));
+        
+    }
 //
 //    @DeleteMapping("/items/{productId}")
 //    public ResponseEntity<?> removeItemFromCart(
