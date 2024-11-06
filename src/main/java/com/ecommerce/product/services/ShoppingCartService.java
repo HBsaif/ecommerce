@@ -207,18 +207,18 @@ public class ShoppingCartService {
 
     @Transactional
     public CartItem updateCartItem(int userId, int itemId, Integer newQuantity) throws Exception {
-    	log.info("Start to update cart...");
+        log.info("Start to update cart for user ID: {}", userId);
+
         // Fetch the cart by userId
         Optional<ShoppingCart> cartOptional = shoppingCartRepository.findByUserId(userId);
         if (cartOptional.isEmpty()) {
-        	log.info("Cart not found for the user id {}", userId);
+            log.info("Cart not found for the user id {}", userId);
             throw new Exception("Cart not found for the user.");
-           
         }
 
         ShoppingCart cart = cartOptional.get();
-        log.info("Cart : {}", cart.toString());
-        
+        log.info("Cart ID: {}", cart.getId());
+
         // Fetch the cart item by itemId and cartId
         Optional<CartItem> cartItemOptional = cartItemRepository.findByIdAndCartId(itemId, cart.getId());
         if (cartItemOptional.isEmpty()) {
@@ -226,28 +226,29 @@ public class ShoppingCartService {
         }
 
         CartItem cartItem = cartItemOptional.get();
-        log.info("Cart Item : {}", cartItem.toString());
-        
+        log.info("Cart Item ID: {}", cartItem.getId());
+
         // If newQuantity is null or <= 0, remove the item from the cart
         if (newQuantity == null || newQuantity <= 0) {
-            cartItemRepository.delete(cartItem); // Correct repository used here
-            return null; // Item was removed
+            cartItemRepository.delete(cartItem);
+            return null;
         }
 
         // Update the quantity of the cart item
         cartItem.setQuantity(newQuantity);
         cartItem = cartItemRepository.save(cartItem);
-        
-        log.info("Updated Cart Item : {}", cartItem.toString());
+
+        log.info("Updated Cart Item ID: {}, Quantity: {}", cartItem.getId(), cartItem.getQuantity());
 
         // Update the cart's updated_at timestamp
         cart.setUpdatedAt(new java.util.Date());
         shoppingCartRepository.save(cart);
-        
-        log.info("Updated Cart : {}", cart.toString());
 
-        return cartItem; // Return the updated cart item
+        log.info("Updated Cart ID: {}", cart.getId());
+
+        return cartItem;
     }
+
 
 
 
