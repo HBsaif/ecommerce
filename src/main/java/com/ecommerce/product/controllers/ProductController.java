@@ -49,13 +49,36 @@ public class ProductController {
 //		return new ResponseEntity<>(response, HttpStatus.OK);
 //	}
 	
-	// Get paginated products
-    @GetMapping
-    public Page<ProductResponse> getAllProducts(
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "10") int size) {
-        return productService.getAllProducts(page, size);
-    }
+//	// Get paginated products
+//    @GetMapping
+//    public Page<ProductResponse> getAllProducts(
+//        @RequestParam(defaultValue = "0") int page,
+//        @RequestParam(defaultValue = "10") int size) {
+//        return productService.getAllProducts(page, size);
+//    }
+	
+	@GetMapping
+	public ResponseEntity<ApiResponse<Page<ProductResponse>>> getAllProducts(
+	        @RequestParam(defaultValue = "0") int page,
+	        @RequestParam(defaultValue = "10") int size) {
+	    
+	    // Fetch paginated products
+	    Page<ProductResponse> productsPage = productService.getAllProducts(page, size);
+	    
+	    // Create ApiResponse object
+	    ApiResponse<Page<ProductResponse>> response = new ApiResponse<>(
+	            StatusMessage.SUCCESS.toString(), 
+	            "Successfully fetched all products.", 
+	            productsPage
+	    );
+	    
+	    // Log the response
+	    log.info("Response : {}", gson.toJson(response));
+	    
+	    // Return response entity with HTTP status 200 OK
+	    return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
     
     @GetMapping("/new-arrivals")
     public ResponseEntity<ApiResponse<List<ProductResponse>>> getNewArrivals(@RequestParam(defaultValue = "4") int n) {

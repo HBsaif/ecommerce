@@ -8,6 +8,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.List;
 @Table(name = "users")
 @Entity
 @ToString
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class User implements UserDetails {
 
 	private static final long serialVersionUID = 1L;

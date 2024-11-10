@@ -1,11 +1,11 @@
 package com.ecommerce.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 public class LoginResponse {
 
@@ -13,5 +13,6 @@ public class LoginResponse {
 	private String refreshToken;
 	private long expiresIn;
 	private boolean isFirstLogin;
+	private int cartItems;
 
 }
