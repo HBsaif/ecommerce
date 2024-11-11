@@ -59,16 +59,17 @@ public class CartController {
 		return ResponseEntity.ok(new ApiResponse<CartItem>(StatusMessage.SUCCESS.toString(), "Item quantity updated", cart));
         
     }
-//
-//    @DeleteMapping("/items/{productId}")
-//    public ResponseEntity<?> removeItemFromCart(
-//            @RequestParam Long userId,
-//            @PathVariable Long productId) {
-//
-//        shoppingCartService.removeItemFromCart(userId, productId);
-//        return ResponseEntity.ok().body(Map.of("status", "SUCCESS", "message", "Item removed from cart"));
-//    }
-//
+
+    @PostMapping("/delete-item")
+    public ResponseEntity<?> removeItemFromCart(@RequestBody Map<String, Integer> payload) {
+        int userId = payload.get("userId");
+        int productId = payload.get("productId");
+
+        shoppingCartService.removeItemFromCart(userId, productId);
+        return ResponseEntity.ok().body(Map.of("status", "SUCCESS", "message", "Item removed from cart"));
+    }
+
+
     @GetMapping
     public ResponseEntity<ApiResponse<ShoppingCartDTO>> getCart(@RequestParam int userId) {
     	ShoppingCartDTO cart = shoppingCartService.getCartByUser(userId);

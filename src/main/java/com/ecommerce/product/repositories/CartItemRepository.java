@@ -13,6 +13,8 @@ import com.ecommerce.entities.ShoppingCart;
 public interface CartItemRepository extends JpaRepository<CartItem, Long> {
 
 	Optional<Product> findByCartAndProduct(ShoppingCart cart, Product product);
+	
+	Optional<CartItem> findByProductAndCart(Product product, ShoppingCart cart);
 
 	Optional<CartItem> findByIdAndCartId(int itemId, Long id);
 

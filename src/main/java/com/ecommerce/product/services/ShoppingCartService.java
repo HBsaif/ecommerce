@@ -19,8 +19,10 @@ import com.ecommerce.entities.Product;
 import com.ecommerce.entities.ShoppingCart;
 import com.ecommerce.entities.User;
 import com.ecommerce.product.dtos.CartItemDTO;
+import com.ecommerce.product.dtos.ProductResponse;
 import com.ecommerce.product.dtos.ShoppingCartDTO;
 import com.ecommerce.product.repositories.CartItemRepository;
+import com.ecommerce.product.repositories.ProductRepository;
 import com.ecommerce.product.repositories.ShoppingCartRepository;
 import com.ecommerce.repositories.UserRepository;
 import com.ecommerce.util.CommonServiceHelper;
@@ -46,6 +48,9 @@ public class ShoppingCartService {
 	
 	@Autowired
 	private UserRepository userRepository;
+	
+	@Autowired
+	private ProductRepository productRepository;
 
 	public ShoppingCart addItemToCart(Long userId, Long productId, int quantity) throws Exception {
         Map<String, Object> params = new LinkedHashMap<>();
@@ -262,10 +267,29 @@ public class ShoppingCartService {
 //        cart.setUpdatedAt(new Date());
 //        shoppingCartRepository.save(cart);
 //    }
-
+//
 //    public void clearCart(Long userId) {
 //        ShoppingCart cart = getCartByUser(userId);
 //        cart.getItems().clear();
 //        shoppingCartRepository.save(cart);
 //    }
+    
+    @Transactional
+    public void removeItemFromCart(int userId, int productId) {
+        log.info("Fetching cart for user ID {}", userId);
+        ShoppingCart cart = shoppingCartRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Cart not found for the user."));
+
+        log.info("Fetching product with ID {}", productId);
+        Product product = productRepository.findById((long) productId)
+                .orElseThrow(() -> new RuntimeException("Product not found."));
+
+        log.info("Looking for cart item with product ID {} and cart ID {}", productId, cart.getId());
+        CartItem cartItem = cartItemRepository.findByProductAndCart(product, cart)
+                .orElseThrow(() -> new RuntimeException("Cart item not found."));
+
+        cartItemRepository.delete(cartItem);
+        log.info("Successfully removed product ID {} from cart ID {}", productId, cart.getId());
+    }
+
 }
